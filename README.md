@@ -16,9 +16,9 @@ How To Get Started
 
 <p>Init the TangilbleDetector and multitouch :</p>
 ``` objective-c
-    TangilbleDetector *tangibleDetector = [[TangilbleDetector alloc]init];
-    self.tangibleDetector.delegate = self;
-    self.view.multipleTouchEnabled = YES;
+TangilbleDetector *tangibleDetector = [[TangilbleDetector alloc]init];
+self.tangibleDetector.delegate = self;
+self.view.multipleTouchEnabled = YES;
 ```
 
 Add touch functions
