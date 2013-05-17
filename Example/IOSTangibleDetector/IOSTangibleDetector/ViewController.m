@@ -22,6 +22,7 @@
     //init the detector
     self.tangibleDetector = [[TangilbleDetector alloc]init];
     self.tangibleDetector.delegate = self;
+    self.view.multipleTouchEnabled = YES;
     
 }
 
