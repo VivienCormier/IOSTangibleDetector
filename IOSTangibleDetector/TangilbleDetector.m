@@ -16,9 +16,9 @@
 @synthesize delegate;
 
 //Distance Point Object
-int DistanceObject1 = 125;
-int DistanceObject2 = 119;
-int DistanceObject3 = 110;
+int DistanceObjectMin = 96;
+int DistanceObjectLong1 = 111;
+int DistanceObjectLong2 = 111;
 
 #pragma mark - Init
 
@@ -36,9 +36,9 @@ int DistanceObject3 = 110;
     free(machine);
     
     if ([platform isEqualToString:@"iPad2,5"] || [platform isEqualToString:@"iPad2,6"]  || [platform isEqualToString:@"iPad2,7"] ) {
-        DistanceObject1 = DistanceObject1 * 1.2f;
-        DistanceObject2 = DistanceObject2 * 1.2f;
-        DistanceObject3 = DistanceObject3 * 1.2f;
+        DistanceObjectMin = DistanceObjectMin * 1.2f;
+        DistanceObjectLong1 = DistanceObjectLong1 * 1.2f;
+        DistanceObjectLong2 = DistanceObjectLong2 * 1.2f;
     }
     
     return self;
@@ -67,6 +67,7 @@ int DistanceObject3 = 110;
 - (void)touchesMoved:(NSSet *)touches{
     //On lance le calcule des distance
     [self calculationsDistance];
+    
 }
 
 - (void)touchesEnded:(NSSet *)touches{
@@ -79,6 +80,7 @@ int DistanceObject3 = 110;
         
         // Supression du touch
         [self.allTouches removeObjectForKey:key];
+        
 	}
     
     //On lance le calcule des distance
@@ -91,18 +93,16 @@ int DistanceObject3 = 110;
 //Cette fonction est lancé quand la position des touches changent
 - (void)calculationsDistance{
     
-    
-        
-    
     int i=0,y,x1,x2,y1,y2,sommeX=0,sommeY=0;
     
     NSEnumerator *enume1 = [self.allTouches objectEnumerator];
     UITouch *touch1,*touch2;
     
     NSMutableArray *allDistance = [[NSMutableArray alloc] init];
-
+    NSMutableDictionary *refDistanceTouch = [[NSMutableDictionary alloc]init];
+    
     if ([self.allTouches count] == 3) {
-     
+        
         while(touch1 = [enume1 nextObject]) {
             
             CGPoint touchLocation1 = [touch1 locationInView:touch1.view];
@@ -125,7 +125,15 @@ int DistanceObject3 = 110;
                     
                     int distance = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
                     
-                    [allDistance addObject:[NSNumber numberWithInt:distance]];
+                    NSNumber *distanceNS = [NSNumber numberWithInt:distance];
+                    
+                    [allDistance addObject:distanceNS];
+                    
+                    NSMutableArray *arrayTouch = [[NSMutableArray alloc]init];
+                    [arrayTouch addObject:touch1];
+                    [arrayTouch addObject:touch2];
+                    
+                    [refDistanceTouch setObject:arrayTouch forKey:distanceNS];
                     
                 }
                 
@@ -140,42 +148,58 @@ int DistanceObject3 = 110;
     BOOL distance2Detec = NO;
     BOOL distance3Detec = NO;
     
+    NSNumber *distanceObjectLong1NS;
+    NSNumber *distanceObjectLong2NS;
+    
     if ([allDistance count] == 3) {
         
-        // On rehcrehce si un des coté est egale à la distance1
-        for(id item in allDistance)
+        // On rehcrehce si un des coté est egale à la distance1, 2 ou 3
+        
+        for(id distanceNS in allDistance)
         {
-            int distance = [item intValue];
+            int distance = [distanceNS intValue];
             
-            if (distance < DistanceObject1 + 10 && distance > DistanceObject1 - 10) {
+            if (distance < DistanceObjectLong1 + 10 && distance > DistanceObjectLong1 - 10) {
                 distance1Detec = TRUE;
+                distanceObjectLong1NS = distanceNS;
             }
-        }
-        
-        
-        // On rehcrehce si un des coté est egale à la distance2
-        for(id item in allDistance)
-        {
-            int distance = [item intValue];
             
-            if (distance < DistanceObject2 + 10 && distance > DistanceObject2 - 10) {
+            if (distance < DistanceObjectLong2 + 10 && distance > DistanceObjectLong2 - 10) {
                 distance2Detec = TRUE;
+                distanceObjectLong2NS = distanceNS;
             }
-        }
-        
-        // On rehcrehce si un des coté est egale à la distance3
-        for(id item in allDistance)
-        {
-            int distance = [item intValue];
             
-            if (distance < DistanceObject3 + 10 && distance > DistanceObject3 - 10) {
+            if (distance < DistanceObjectMin + 10 && distance > DistanceObjectMin - 10) {
                 distance3Detec = TRUE;
             }
+            
         }
+        
         
     }
     
+    // Rotation
     if (distance1Detec && distance2Detec && distance3Detec) {
+        
+        NSMutableArray *arrayTouch1 = [refDistanceTouch objectForKey:distanceObjectLong1NS];
+        NSMutableArray *arrayTouch2 = [refDistanceTouch objectForKey:distanceObjectLong2NS];
+        
+        NSEnumerator *enumeTouch1 = [arrayTouch1 objectEnumerator];
+        NSEnumerator *enumeTouch2 = [arrayTouch2 objectEnumerator];
+        
+        CGPoint touchTop;
+        
+        while(touch1 = [enumeTouch1 nextObject]) {
+            
+            while(touch2 = [enumeTouch2 nextObject]) {
+                
+                if ([touch1 isEqual:touch2]) {
+                    touchTop = [touch2 locationInView:touch2.view];
+                }
+                
+            }
+            
+        }
         
         double middelRectX = sommeX/3;
         double middleRectY = sommeY/3;
@@ -189,8 +213,8 @@ int DistanceObject3 = 110;
         u.y = 0 - middleRectY;
         
         CGPoint v ;
-        v.x = x1 -  middelRectX;
-        v.y = y1 - middleRectY;
+        v.x = touchTop.x -  middelRectX;
+        v.y = touchTop.y - middleRectY;
         
         double cosa = ((u.x * v.x) + (u.y * v.y)) / (sqrt((u.x * u.x) + (u.y * u.y)) * sqrt((v.x * v.x) + (v.y * v.y)));
         
@@ -200,13 +224,17 @@ int DistanceObject3 = 110;
         
         float finalAngle = angle*sign;
         
+        finalAngle += M_PI/2;
+        
         [[self delegate] objectDetectedWithPosition:point andAngle:finalAngle];
         
     }else{
         [[self delegate] objectisNotDetected];
     }
-
-
+    
+    [allDistance removeAllObjects];
+    allDistance = nil;
+    
 }
 
 @end
