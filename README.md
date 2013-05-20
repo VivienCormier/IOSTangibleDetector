@@ -75,7 +75,7 @@ Get the position and angle of the object
 
 - (void)objectisNotDetected{
     
-    // if object is Detected
+    // if object is not Detected
     
 }
 ```
